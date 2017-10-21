@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>Pic2Text</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>B.class</name>
+			<type>1</type>
+			<location>C:/Users/user/Pic2TextWorkspace/Pic2Text/src/oldref/B.class</location>
+		</link>
+		<link>
+			<name>Circle.class</name>
+			<type>1</type>
+			<location>C:/Users/user/Pic2TextWorkspace/Pic2Text/src/oldref/Circle.class</location>
+		</link>
+	</linkedResources>
+</projectDescription>
