@@ -10,8 +10,8 @@ INDEX VERSION 1.127+C:\Users\user\Pic2TextWorkspace\.metadata\.plugins\org.eclip
 4067068589.index
 4143041746.index
 4164139556.index
-2799350720.index
 262141639.index
+2799350720.index
 2050908165.index
 363248586.index
 4042793792.index
