@@ -1,0 +1,2 @@
+Class-Path: /Pic2Text/src/lib/jcommander-1.72.jar
+Main-Class: Pictextor
