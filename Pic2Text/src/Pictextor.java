@@ -28,11 +28,18 @@ import com.beust.jcommander.Parameter;
 
 public class Pictextor {
 
-	private static final int BOXSIZE = 18;
+	private static final int BOXSIZE = 10;
 
-	// gets a grayscale bufferedimage and returns a "boxed" version (avg over 16*16 boxes)
-	// if image is in standard rgb result will still be "boxed" grayscale of red component
-	//width and height are devisible by 16
+	/**
+	 * generates a grayscale pixelated image from grayscale image
+	 * sized (width/boxsize,height/boxsize)
+	 *
+	 * @param boxsize
+	 * 				int size of rectangular area containing one character
+	 * @param image
+	 * 				BufferedImage grayscale image
+	 * @return grayscale bufferedimage where each pixel represents a rectangular area in original image
+	 */
 	private static BufferedImage GrayImgBoxing(BufferedImage image, int boxsize)
 	{
 		int sumred=0;
@@ -64,8 +71,14 @@ public class Pictextor {
 		return boxed;
 	}
 
-	// will return int value of pixel(0-255) in grayscale
-	// rgbint is a int representing rgb pixel value
+	/**
+	 * calculates gryascale brightness of a ARGB int
+	 *
+	 * @param rgbint
+	 * 				integer RGB value of pixel
+	 * 
+	 * @return integer value of grayscale brightness (alpha channel unchanged)
+	 */
 	private static int RGBtoGray(int rgbint)  
 	{
 		double temp=0.0;
@@ -81,7 +94,14 @@ public class Pictextor {
 		return gray;
 	}
 	
-	// get a AGBR bufferedimage and returns it in grayscale (0-255)
+	/**
+	 * generates a grayscale BufferedImage from a colored image
+	 * 
+	 * @param color
+	 * 				colored BufferedImage
+	 * 
+	 * @return TYPE_BYTE_GRAY BufferedImage with same dimensionss
+	 */
 	private static BufferedImage ImageToGray(BufferedImage color)
 	{
 		int width = color.getWidth();
@@ -101,8 +121,18 @@ public class Pictextor {
 		return gray;
 	}
 	
-
-	// calculate brightness of a letter(character to string)	
+	/**
+	 * calculate a character relative brightness (or "darkness")
+	 * 
+	 * @param letter
+	 * 				String value of character (length==1)
+	 * @param boxsize
+	 * 				int size of rectangular area containing one character
+	 * @param isbold
+	 * 				boolean true if letter is bold false if regular
+	 * 
+	 * @return integer value of relative brightness
+	 */
 	public static int CalcLetterBrightness(String letter,int boxsize, boolean isbold)
 	{
 		int sumblue=0;
@@ -110,7 +140,7 @@ public class Pictextor {
 		int blue=0;
 		BufferedImage tempimg = new BufferedImage(boxsize*2,boxsize*2 , BufferedImage.TYPE_4BYTE_ABGR);
 	    Graphics2D tempgraphics = tempimg.createGraphics();
-	    double fontSize= 6 + BOXSIZE * Toolkit.getDefaultToolkit().getScreenResolution() / 72.0;
+	    double fontSize= 6 + boxsize * Toolkit.getDefaultToolkit().getScreenResolution() / 72.0;
 	    if (isbold)
 	    {
 	    	tempgraphics.setFont(new Font("monospaced", Font.BOLD, (int)fontSize));
@@ -135,28 +165,22 @@ public class Pictextor {
 		}
      	return sumblue;
 	}
-    
-	// creating and printing a brightness scale	
-	public static void printscale (int boxsize)
+	 
+	/**
+	 * create LetterPixel arraylist - list will be twice as long as stringchars, 
+	 * every character will be added twice (bold/regular)
+	 * 
+	 * @param stringchars
+	 * 				String[] array of character string values (length==1)
+	 * @param boxsize
+	 * 				int size of rectangular area containing one character
+	 * 
+	 * @return an arraylist of LetterPixels with normalized brightness (within range 0-255),
+	 * sorted by brightness in ascending order
+	 */
+	public static ArrayList<LetterPixel> createLetterScale(String[] stringchars, int boxsize)
 	{
-		String[] stringchars = new String[]{"א", "ב", "ג", "ד", "ה","ו", "ז", "ח", "ט", "י"
-									 ,"כ", "מ", "נ", "ס", "פ", "צ", "ר", "ש", "ת", "."
-									 ," ", "-", "=", "+", ":", "ם"};
-		int[] scale = new int[stringchars.length*2];
-		
-		for (int i=0 ; i<stringchars.length ; i++)
-		{
-			scale[i]=CalcLetterBrightness(stringchars[i], BOXSIZE, false);
-			scale[i+stringchars.length]=CalcLetterBrightness(stringchars[i], BOXSIZE, true);
-		}
-		System.out.println(Arrays.toString(scale));
-	}
-	
-	// create LetterPixel arraylist - list will be twice as long as stringchars
-	public static ArrayList<LetterPixel> createLetterScale(String[] stringchars)
-	{
-		int length=0;
-		length = Array.getLength(stringchars);
+		int length = Array.getLength(stringchars);
 		int tempbright=0;
 		
 		ArrayList<LetterPixel> arraylist = new ArrayList<LetterPixel>();
@@ -165,32 +189,85 @@ public class Pictextor {
 		for(int i=0;i<length;i++)
 		{
 			
-			tempbright = CalcLetterBrightness(stringchars[i], BOXSIZE, false);
+			tempbright = CalcLetterBrightness(stringchars[i], boxsize, false);
 			arraylist.add(new LetterPixel(stringchars[i],tempbright , false));
 			
 			
 		}
 		for(int i=0;i<length;i++)
 		{
-			tempbright = CalcLetterBrightness(stringchars[i], BOXSIZE, true);
+			tempbright = CalcLetterBrightness(stringchars[i], boxsize, true);
 			arraylist.add(new LetterPixel(stringchars[i],tempbright , true));
+		}
+		arraylist.sort(null);
+		//Collections.sort(arraylist);
+		normalizeSortedArraylist(arraylist);
+		
+		/* printing of list check
+		for (LetterPixel lp : arraylist)
+		{
+			System.out.println(lp.ToString());
+		}
+		 */
+		
+		return arraylist;
+	}
+	
+	/**
+	 * create LetterPixel ArrayList - list will be twice as long as charstring, 
+	 * every character will be added twice (bold/regular)
+	 * 
+	 * @param charstring
+	 * 				String of all characters to be added to list
+	 * @param boxsize
+	 * 				int size of rectangular area containing one character
+	 * 
+	 * @return ArrayList of LetterPixels with normalized brightness (within range 0-255),
+	 * sorted by brightness in ascending order
+	 */
+	public static ArrayList<LetterPixel> createLetterScale(String charstring, int boxsize)
+	{
+		int length = charstring.length();
+		int tempbright=0;
+		
+		ArrayList<LetterPixel> arraylist = new ArrayList<LetterPixel>();
+		
+		for(int i=0;i<length;i++)
+		{
+			
+			tempbright = CalcLetterBrightness(String.valueOf(charstring.charAt(i)), boxsize, false);
+			arraylist.add(new LetterPixel(String.valueOf(charstring.charAt(i)),tempbright , false));
+			
+			
+		}
+		for(int i=0;i<length;i++)
+		{
+			tempbright = CalcLetterBrightness(String.valueOf(charstring.charAt(i)), boxsize, true);
+			arraylist.add(new LetterPixel(String.valueOf(charstring.charAt(i)),tempbright , true));
 		}
 		
 		Collections.sort(arraylist);
 		normalizeSortedArraylist(arraylist);
 		
-		//temp printing of list check
+		/* printing of list check
 		for (LetterPixel lp : arraylist)
 		{
 			System.out.println(lp.ToString());
 		}
+		 */
 		
 		return arraylist;
 	}
-	
-	// normalize scale's letterpixels brightness to be of range 0-255
+		
+	/**
+	 * normalize a sorted LetterPixel ArrayList, brightness will be of range 0-255, order not changed
+	 * 
+	 * @param arraylist
+	 * 				a LetterPixel ArrayList, sorted by brightness in ascending order
+	 */
 	public static void normalizeSortedArraylist (ArrayList<LetterPixel> arraylist)
 	{
+		// Daniel notes: Functions should have a return value and not mutate the object that was sent to them
 		int tempbrightness=0;
 		int index = arraylist.size()-1;
 		LetterPixel temp = arraylist.get(index);
@@ -203,7 +280,17 @@ public class Pictextor {
 		
 	}
 	
-	// match brightness to a letter from a sorted letterpixel arraylist
+	/**
+	 * match given brightness to a LetterPixel from a sorted,normalized ArrayList 
+	 * 
+	 * @param brightness
+	 * 				int brightness value (should be in range 0-255)
+	 * @param sortedlist
+	 * 				ArrayList of LetterPixels with normalized brightness (within range 0-255),
+	 * 				sorted by brightness in ascending order
+	 * 
+	 * @return int index of LetterPixel in sortedlist matching given brightness
+	 */
 	public static int indexOfBrightness(int brightness, ArrayList<LetterPixel> sortedlist )
 	{
 		int temp=0;
@@ -229,25 +316,30 @@ public class Pictextor {
 		return temp;
 	}
 	
-	// printing a picture from gray boxed bufferedimage
-	public static BufferedImage boxedToLetters (BufferedImage boxed , ArrayList<LetterPixel> sortedlist)
+	/**
+	 * generate a letter-image from a "boxed" image 
+	 * 
+	 * @param boxed
+	 * 				TYPE_BYTE_GRAY BufferedImage "boxed" grayscale version of original image
+	 * @param sortedlist
+	 * 				ArrayList of LetterPixels with normalized brightness (within range 0-255),
+	 * 				sorted by brightness in ascending order
+	 * @param boxsize
+	 * 				int size of rectangular area containing one character
+	 * 
+	 * @return BufferedImage TYPE_3BYTE_BGR image painted with characters
+	 */
+	public static BufferedImage boxedToLetters (BufferedImage boxed , ArrayList<LetterPixel> sortedlist, int boxsize)
 	{
 		int width = boxed.getWidth();
 		int height = boxed.getHeight();
 		int tempbrightnessindex=5;
 		int tempbright = 20;
-		double fontSize= 6+ BOXSIZE * Toolkit.getDefaultToolkit().getScreenResolution() / 72.0;
-	/*	Comparator<LetterPixel> c = new Comparator<LetterPixel>()
-        {
-            public int compare(LetterPixel lp1, LetterPixel lp2)
-            {
-                return lp1.compareTo(lp2);
-            }
-        }; */
-		BufferedImage tempimg = new BufferedImage(width*BOXSIZE,height*BOXSIZE , BufferedImage.TYPE_3BYTE_BGR);
+		double fontSize= 6+ boxsize * Toolkit.getDefaultToolkit().getScreenResolution() / 72.0;
+		BufferedImage tempimg = new BufferedImage(width*boxsize,height*boxsize , BufferedImage.TYPE_3BYTE_BGR);
 	    Graphics2D tempgraphics = tempimg.createGraphics();
-	    tempgraphics.setColor(Color.WHITE);
-	    tempgraphics.fillRect(0, 0, width*BOXSIZE, height*BOXSIZE);
+	    tempgraphics.setColor(Color.WHITE);  // this line and the next make sure background is white
+	    tempgraphics.fillRect(0, 0, width*boxsize, height*boxsize);
 	    tempgraphics.setColor(Color.BLACK);
 	    Font boldFont = new Font("monospaced", Font.BOLD, (int)fontSize);
 	    Font plainFont = new Font("monospaced", Font.PLAIN, (int)fontSize);
@@ -269,42 +361,32 @@ public class Pictextor {
 				{
 					tempgraphics.setFont(plainFont);
 				}
-				tempgraphics.drawString(sortedlist.get(tempbrightnessindex).getLetter(),i*BOXSIZE, (j+1)*BOXSIZE);   
+				tempgraphics.drawString(sortedlist.get(tempbrightnessindex).getLetter(),i*boxsize, (j+1)*boxsize);   
 			}
 		}
 		return tempimg;
 	}
-
 	
-	// testing printing letters all-over	- not needed(but for template purposes) working
-	public static BufferedImage printletters (String letter ){
-
-			BufferedImage tempimg = new BufferedImage(512,512 , BufferedImage.TYPE_3BYTE_BGR);
-		    Graphics2D tempgraphics = tempimg.createGraphics();
-		    tempgraphics.setColor(Color.WHITE);
-		    tempgraphics.fillRect(0, 0, 512, 512);
-		    tempgraphics.setColor(Color.BLACK);     		       
-	     	tempgraphics.setFont(new Font("monospaced", Font.BOLD, 28));
-	     	// all colored pixels should be black or white so r=g=b and there is no need for R,G vlaues
-			for (int i=0;i<32;i++)
-			{
-				for (int j=0;j<32;j++)
-				{				
-					tempgraphics.drawString(letter,i*16, (j+1)*16);   
-				}
-			}
-			return tempimg;
-		}
-		
-	
-	// print letter image from input path to output path, sortedScale is a sorted ArrayList<LetterPixel> 
-	public static void ToLetterImage (String stringinput ,String stringoutput, ArrayList<LetterPixel> sortedScale){
+	/**
+	 * generate an image painted with characters from input path
+	 * 
+	 * @param stringinput
+	 * 				string of input file path (file is readable via ImageIO.read)
+	 * @param stringoutput
+	 * 				string of output path
+	 * @param sortedScale
+	 * 				ArrayList of LetterPixels with normalized brightness (within range 0-255),
+	 * 				sorted by brightness in ascending order
+	 * @param boxsize
+	 * 				int size of rectangular area containing one character
+	 */
+	public static void ToLetterImage (String stringinput ,String stringoutput, ArrayList<LetterPixel> sortedScale, int boxsize){
         BufferedImage inputimg = null;
 		try {
 			inputimg = ImageIO.read(new File(stringinput));
 			BufferedImage grayimg	= ImageToGray(inputimg);      
-	        BufferedImage boxedimg 	= GrayImgBoxing(grayimg,BOXSIZE);
-	        BufferedImage letterimg = boxedToLetters(boxedimg, sortedScale);
+	        BufferedImage boxedimg 	= GrayImgBoxing(grayimg,boxsize);
+	        BufferedImage letterimg = boxedToLetters(boxedimg, sortedScale,boxsize);
 	        File outputimg = new File(stringoutput);
 	        ImageIO.write(letterimg, "png", outputimg);
 		} catch (IOException e) {
@@ -315,14 +397,22 @@ public class Pictextor {
 
 	}
 	
-	/*----------------------------------------------------------------------------------------------------------------*/
-	
-	/* begin gif processing part*/
-	
-	
-	public static void ToLetterGif(String inputpath, String outputpath,ArrayList<LetterPixel> sortedScale ) throws Exception 
+	/**
+	 * generate a .gif painted with characters from input path
+	 * 
+	 * @param inputpath
+	 * 				string of input file path (file is readable via ImageIO.read)
+	 * @param outputpath
+	 * 				string of output path
+	 * @param sortedScale
+	 * 				ArrayList of LetterPixels with normalized brightness (within range 0-255),
+	 * 				sorted by brightness in ascending order
+	 * @param boxsize
+	 * 				int size of rectangular area containing one character
+	 */
+	public static void ToLetterGif(String inputpath, String outputpath,ArrayList<LetterPixel> sortedScale, int boxsize ) throws Exception 
 	{
-		System.out.print("gif start");
+		System.out.println("gif start");
 		FileInputStream data = new FileInputStream(inputpath);
 		final GifImage gif = GifDecoder.read(data); //get gif properties with dhyan blum encoder
 	//	final int width = gif.getWidth();
@@ -341,22 +431,19 @@ public class Pictextor {
 			Graphics2D g = tempgifimg.createGraphics();				        
 			g.drawImage(gifimg, 0, 0, Color.WHITE, null);			
 			BufferedImage graygif = ImageToGray(tempgifimg);	        
-			BufferedImage boxedgif = GrayImgBoxing(graygif,BOXSIZE);
-			BufferedImage lettergif = boxedToLetters(boxedgif, sortedScale);
+			BufferedImage boxedgif = GrayImgBoxing(graygif,boxsize);
+			BufferedImage lettergif = boxedToLetters(boxedgif, sortedScale,boxsize);
 			e.setDelay(delay*10);
 		  	e.addFrame(lettergif);
 		}
 		e.finish();
-		System.out.print("gif end");
+		System.out.println("gif end");
 	}
 	
 	
-	
 	public void run() {
-        System.out.printf("testing testing");
+        System.out.println("testing testing");
       }
-	
-	
 	
 	
 	// main
@@ -369,105 +456,39 @@ public class Pictextor {
             .parse(args);
         main.run();
         
+    	              
+        //create normalize sorted scale 
         
-               
-		BufferedImage img = null;
-		try {
-			img = ImageIO.read(new File("C:\\Users\\user\\Pic2TextWorkspace\\Lenna.png"));			
-		} 	
-		catch (IOException e){
-		}		
-		
-		BufferedImage grayimg = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_BYTE_GRAY);		
-		grayimg=ImageToGray(img);		
-		File output = new File("C:\\Users\\user\\Pic2TextWorkspace\\grayLenna.png");		
-        ImageIO.write(grayimg, "png", output);       
-        BufferedImage boxedimg = new BufferedImage(grayimg.getWidth()/BOXSIZE, grayimg.getHeight()/BOXSIZE, BufferedImage.TYPE_BYTE_GRAY);	
-        boxedimg = GrayImgBoxing(grayimg,BOXSIZE);        
-        File output2 = new File("C:\\Users\\user\\Pic2TextWorkspace\\boxedLenna.png");		
-        ImageIO.write(boxedimg, "png", output2);
-     	              
-         //create normalize sorted scale 
-        
-         ArrayList<LetterPixel> sortedScale = new ArrayList<LetterPixel>();
-         String[] scaleChars = new String[]{"א", "ב", "ג", "ד", "ה","ו", "ז", "ח", "ט", "י"
+        ArrayList<LetterPixel> sortedScale = new ArrayList<LetterPixel>();
+        String[] scaleChars = new String[]{"א", "ב", "ג", "ד", "ה","ו", "ז", "ח", "ט", "י"
 				 ,"כ", "מ", "נ", "ס", "פ", "צ", "ר", "ש", "ת", "."
 				 ," ", "-", "=", "+", ":", "ם"};
-         sortedScale=createLetterScale(scaleChars);
+        sortedScale=createLetterScale(scaleChars,BOXSIZE);
          
         
         // print letter image
         /*
-        String inputmonroe = "C:\\Users\\user\\Pic2TextWorkspace\\fart-spongebob.jpg";
-        String outputmonroe = "C:\\Users\\user\\Pic2TextWorkspace\\lettermonroe.png";
-        ToLetterImage(inputmonroe,outputmonroe,sortedScale);
-
-        inputmonroe = "C:\\Users\\user\\Pic2TextWorkspace\\shay.jpg";
-        outputmonroe = "C:\\Users\\user\\Pic2TextWorkspace\\letterneta.jpg";
-        ToLetterImage(inputmonroe,outputmonroe,sortedScale);
+        String inputmonroe = "C:\\Users\\user\\Pic2TextWorkspace\\input\\talya.jpg";
+        String outputmonroe = "C:\\Users\\user\\Pic2TextWorkspace\\output\\lettertalya.jpg";
+        ToLetterImage(inputmonroe,outputmonroe,sortedScale,BOXSIZE);
+		
+        inputmonroe = "C:\\Users\\user\\Pic2TextWorkspace\\input\\daniel.jpg";
+        outputmonroe = "C:\\Users\\user\\Pic2TextWorkspace\\output\\letterdaniel.jpg";
+        ToLetterImage(inputmonroe,outputmonroe,sortedScale,BOXSIZE);
         */
         
-        
-        
-        
-        // test bufferedimage types
-
-        File output5 = new File("C:\\Users\\user\\Pic2TextWorkspace\\testtypes.jpg");		
-        ImageIO.write(printletters("a"), "jpg", output5);       
-
-        /*---------------------------------start gif processing part------------------------------------------------------------------*/
-        
-        
-        System.out.print("begin gif part");
-        File filefile = new File("C:\\Users\\user\\Pic2TextWorkspace\\mario.gif");
-    	FileInputStream data = new FileInputStream("C:\\Users\\user\\Pic2TextWorkspace"
-    			+ "\\DhyanB-gifdecoder\\src\\test\\resources\\input-images\\mario.gif");
-        //FileInputStream data = new FileInputStream("C:\\Users\\user\\Pic2TextWorkspace\\giftest.gif");
-    	FileOutputStream output4 = new FileOutputStream ("C:\\Users\\user\\Pic2TextWorkspace\\giftest1.gif");
-    	AnimatedGifEncoder e = new AnimatedGifEncoder();
-    	e.start(output4);
-    	e.setRepeat(0);
-    	//e.setTransparent(Color.BLACK);
-    	e.setQuality(7);
-    	GifImage gif = GifDecoder.read(data);
-		int width = gif.getWidth();
-		int height = gif.getHeight();
-		BufferedImage lettergif = null;
-		int background = gif.getBackgroundColor();
-		int frameCount = gif.getFrameCount();
-		for (int i = 0; i < frameCount; i++) {
-			BufferedImage gifimg = gif.getFrame(i);
-			int delay = gif.getDelay(i);			
-		//	ImageIO.write(gifimg, "png", new File("C:\\Users\\user\\Pic2TextWorkspace\\output\\" + "frame_" + i + ".png"));
-			BufferedImage tempgifimg=gifimg;
-			
-			Graphics2D g = tempgifimg.createGraphics();				        
-			g.drawImage(gifimg, 0, 0, Color.WHITE, null);
-			
-			
-		     BufferedImage graygif=ImageToGray(tempgifimg);
-		        
-		     BufferedImage boxedgif = GrayImgBoxing(graygif,BOXSIZE);
-		     
-		     lettergif = boxedToLetters(boxedgif, sortedScale);
-		     
-		  //   ImageIO.write(lettergif, "png", new File("C:\\Users\\user\\Pic2TextWorkspace\\output\\" + "letter_frame_" + i + ".png"));
-		     
-		  	e.setDelay(delay*10);
-		  	e.addFrame(lettergif);
-		}
-		e.finish();
-		System.out.print(" end gif part"); 
-		
-		String inputgif = "C:\\Users\\user\\Pic2TextWorkspace"
-    			+ "\\DhyanB-gifdecoder\\src\\test\\resources\\input-images\\steps.gif";
-		String outputgif = "C:\\Users\\user\\Pic2TextWorkspace\\giftest2.gif";
+        // create letter gif
+             
+		String inputgif = "C:\\Users\\user\\Pic2TextWorkspace\\DhyanB-gifdecoder\\src\\test\\resources\\input-images\\steps.gif";
+  		String outputgif = "C:\\Users\\user\\Pic2TextWorkspace\\output\\giftest1.gif";
 		try {
-			ToLetterGif(inputgif, outputgif, sortedScale);
+			ToLetterGif(inputgif, outputgif, sortedScale, BOXSIZE);
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		}  
+		} 
+		  
+
 	}
 	
 }
