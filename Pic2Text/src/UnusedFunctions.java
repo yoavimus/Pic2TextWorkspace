@@ -8,6 +8,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
@@ -106,7 +107,7 @@ public class UnusedFunctions {
 	}
 	
 	// testing printing letters all-over	- not needed(but for template purposes) working
-		public static BufferedImage printletters (String letter ){
+	public static BufferedImage printletters (String letter ){
 
 			BufferedImage tempimg = new BufferedImage(512,512 , BufferedImage.TYPE_3BYTE_BGR);
 		    Graphics2D tempgraphics = tempimg.createGraphics();
@@ -125,4 +126,63 @@ public class UnusedFunctions {
 			return tempimg;
 		}
 		
+	    
+	// creating and printing a brightness scale	
+	public static void printscale (int boxsize)
+	{
+		String[] stringchars = new String[]{"א", "ב", "ג", "ד", "ה","ו", "ז", "ח", "ט", "י"
+				,"כ", "מ", "נ", "ס", "פ", "צ", "ר", "ש", "ת", "."
+				," ", "-", "=", "+", ":", "ם"};
+		int[] scale = new int[stringchars.length*2];
+			
+		for (int i=0 ; i<stringchars.length ; i++)
+		{
+			scale[i]=CalcLetterBrightness(stringchars[i], BOXSIZE, false);
+			scale[i+stringchars.length]=CalcLetterBrightness(stringchars[i], BOXSIZE, true);
+		}
+		System.out.println(Arrays.toString(scale));
+	}
+	
+	
+    /*---------------------------------start gif processing snippet------------------------------------------------------------------*/
+    
+    /*
+    	System.out.print("begin gif part");
+    	File filefile = new File("C:\\Users\\user\\Pic2TextWorkspace\\mario.gif");
+		FileInputStream data = new FileInputStream("C:\\Users\\user\\Pic2TextWorkspace"
+				+ "\\DhyanB-gifdecoder\\src\\test\\resources\\input-images\\mario.gif");
+    	//FileInputStream data = new FileInputStream("C:\\Users\\user\\Pic2TextWorkspace\\giftest.gif");
+		FileOutputStream output4 = new FileOutputStream ("C:\\Users\\user\\Pic2TextWorkspace\\giftest1.gif");
+		AnimatedGifEncoder e = new AnimatedGifEncoder();
+		e.start(output4);
+		e.setRepeat(0);
+		// e.setTransparent(Color.BLACK);
+		e.setQuality(7);
+		GifImage gif = GifDecoder.read(data);
+		int width = gif.getWidth();
+		int height = gif.getHeight();
+		BufferedImage lettergif = null;
+		int background = gif.getBackgroundColor();
+		int frameCount = gif.getFrameCount();
+		for (int i = 0; i < frameCount; i++) {
+		BufferedImage gifimg = gif.getFrame(i);
+		int delay = gif.getDelay(i);			
+		//	ImageIO.write(gifimg, "png", new File("C:\\Users\\user\\Pic2TextWorkspace\\output\\" + "frame_" + i + ".png"));
+		BufferedImage tempgifimg=gifimg;
+		
+		Graphics2D g = tempgifimg.createGraphics();				        
+		g.drawImage(gifimg, 0, 0, Color.WHITE, null);
+	    BufferedImage graygif=ImageToGray(tempgifimg);
+	    BufferedImage boxedgif = GrayImgBoxing(graygif,BOXSIZE);
+	    lettergif = boxedToLetters(boxedgif, sortedScale);		     
+	  //ImageIO.write(lettergif, "png", new File("C:\\Users\\user\\Pic2TextWorkspace\\output\\" + "letter_frame_" + i + ".png"));		     
+	  	e.setDelay(delay*10);
+	  	e.addFrame(lettergif);
+	}
+	e.finish();
+	System.out.print(" end gif part"); 
+	*/
+    /*------------------------------------------------------ end gif proccesing snippet-----------------*/
+	
+
 }

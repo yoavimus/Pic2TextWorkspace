@@ -1,23 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item value="false" key="isRegEx"/>
-		<item value="sample" key="selection"/>
+		<item value="true" key="isRegEx"/>
+		<item value="void" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="true" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
+			<item value="void"/>
+			<item value="main"/>
+			<item value="BOXSIZE"/>
+			<item value="neta"/>
+			<item value="ToLetterImage"/>
+			<item value="sorted"/>
+			<item value="printscale"/>
 			<item value="sample"/>
-			<item value="quality"/>
-			<item value="ImageToGray"/>
-			<item value="data"/>
-			<item value="ABGR"/>
-			<item value="frameCount"/>
-			<item value="fontsize"/>
-			<item value="getImagePixels"/>
 		</list>
 		<list key="replacehistory">
+			<item value="boxsize"/>
+			<item value="itay"/>
 			<item value="gray"/>
 		</list>
 	</section>

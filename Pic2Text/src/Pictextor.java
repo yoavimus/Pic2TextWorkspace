@@ -201,7 +201,7 @@ public class Pictextor {
 		}
 		arraylist.sort(null);
 		//Collections.sort(arraylist);
-		normalizeSortedArraylist(arraylist);
+		arraylist=normalizeSortedScale(arraylist);
 		
 		/* printing of list check
 		for (LetterPixel lp : arraylist)
@@ -247,7 +247,7 @@ public class Pictextor {
 		}
 		
 		Collections.sort(arraylist);
-		normalizeSortedArraylist(arraylist);
+		arraylist=normalizeSortedScale(arraylist);
 		
 		/* printing of list check
 		for (LetterPixel lp : arraylist)
@@ -278,6 +278,28 @@ public class Pictextor {
 			lp.setBrightness(tempbrightness*255/factor);
 		}
 		
+	}
+	
+	/**
+	 * normalize a sorted LetterPixel ArrayList, brightness will be of range 0-255, order not changed
+	 * 
+	 * @param arraylist
+	 * 				a LetterPixel ArrayList, sorted by brightness in ascending order
+	 */
+	public static ArrayList<LetterPixel> normalizeSortedScale (ArrayList<LetterPixel> arraylist)
+	{
+		// Daniel notes: Functions should have a return value and not mutate the object that was sent to them
+		int tempbrightness=0;
+		int index = arraylist.size()-1;
+		ArrayList<LetterPixel> templist = arraylist;
+		LetterPixel temp = arraylist.get(index);
+		int factor = temp.getBrightness();
+		for (LetterPixel lp : templist)
+		{
+			tempbrightness = lp.getBrightness();
+			lp.setBrightness(tempbrightness*255/factor);
+		}
+		return templist;
 	}
 	
 	/**
@@ -440,22 +462,12 @@ public class Pictextor {
 		System.out.println("gif end");
 	}
 	
-	
-	public void run() {
-        System.out.println("testing testing");
-      }
-	
+
 	
 	// main
 	public static void main(String[] args) throws IOException
 	{
-        Pictextor main = new Pictextor();
-        JCommander.newBuilder()
-            .addObject(main)
-            .build()
-            .parse(args);
-        main.run();
-        
+       
     	              
         //create normalize sorted scale 
         
@@ -479,7 +491,7 @@ public class Pictextor {
         
         // create letter gif
              
-		String inputgif = "C:\\Users\\user\\Pic2TextWorkspace\\DhyanB-gifdecoder\\src\\test\\resources\\input-images\\steps.gif";
+		String inputgif = "C:\\Users\\user\\Pic2TextWorkspace\\DhyanB-gifdecoder\\src\\test\\resources\\input-images\\mario.gif";
   		String outputgif = "C:\\Users\\user\\Pic2TextWorkspace\\output\\giftest1.gif";
 		try {
 			ToLetterGif(inputgif, outputgif, sortedScale, BOXSIZE);
